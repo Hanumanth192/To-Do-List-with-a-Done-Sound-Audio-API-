@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>To-Do List with Working Beep Sound</title>
+<style>
+    body {
+        font-family: Poppins, sans-serif;
+        background: linear-gradient(135deg, #1d1d1d, #3a3a3a);
+        color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    .container {
+        width: 360px;
+        background: #222;
+        padding: 25px;
+        border-radius: 18px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        text-align: center;
+    }
+
+    h2 {
+        margin: 0 0 20px;
+        font-size: 26px;
+    }
+
+    .input-box {
+        display: flex;
+        gap: 10px;
+    }
+
+    input {
+        flex: 1;
+        padding: 10px;
+        border-radius: 8px;
+        border: none;
+        outline: none;
+        font-size: 16px;
+    }
+
+    button {
+        background: #ffcb3b;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+        font-size: 15px;
+    }
+
+    button:hover {
+        background: #ffd86a;
+        transform: scale(1.05);
+    }
+
+    ul {
+        margin-top: 20px;
+        padding: 0;
+    }
+
+    li {
+        list-style: none;
+        background: #333;
+        padding: 12px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    li:hover {
+        background: #444;
+        transform: scale(1.02);
+    }
+
+    .done {
+        text-decoration: line-through;
+        color: #9e9e9e;
+    }
+
+    .delete-btn {
+        background: red;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h2>✔ To-Do List</h2>
+
+    <div class="input-box">
+        <input id="taskInput" type="text" placeholder="Enter task...">
+        <button onclick="addTask()">Add</button>
+    </div>
+
+    <ul id="taskList"></ul>
+</div>
+
+<script>
+// Create one global audio context
+let audioCtx;
+
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        console.log("Audio initialized");
+    }
+}
+
+// Clean soft beep sound
+function beep() {
+    initAudio();
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.value = 700; // nice soft beep
+
+    // Envelope (smooth fade-in, fade-out)
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.01); 
+    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.25);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.3);
+}
+
+// Add Task
+function addTask() {
+    initAudio();
+
+    const input = document.getElementById("taskInput");
+    const text = input.value.trim();
+    if (text === "") return;
+
+    const li = document.createElement("li");
+    li.textContent = text;
+
+    // Mark done + beep sound
+    li.addEventListener("click", function () {
+        li.classList.toggle("done");
+        beep();
+    });
+
+    // Delete button
+    const del = document.createElement("button");
+    del.textContent = "X";
+    del.className = "delete-btn";
+
+    del.addEventListener("click", function (event) {
+        event.stopPropagation();
+        li.remove();
+    });
+
+    li.appendChild(del);
+    document.getElementById("taskList").appendChild(li);
+    input.value = "";
+}
+
+</script>
+
+</body>
+</html>
